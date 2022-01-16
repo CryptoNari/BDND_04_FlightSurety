@@ -1,4 +1,4 @@
-pragma solidity ^0.4.25;
+pragma solidity >=0.4.25;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
@@ -11,6 +11,8 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+
+    mapping(address => bool) private authorizedCallers;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -55,6 +57,14 @@ contract FlightSuretyData {
         require(msg.sender == contractOwner, "Caller is not contract owner");
         _;
     }
+    /**
+    * @dev Modifier that requires the an authorised "ContractCaller" account to be the function caller
+    */
+    modifier requireAuthorizedCaller()
+    {
+        require(authorizedCallers[msg.sender] == true, "Caller is not authorised");
+        _;
+    }
 
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
@@ -88,6 +98,24 @@ contract FlightSuretyData {
     {
         operational = mode;
     }
+
+
+    /**
+    * @dev Sets authorized ContractCaller Addresses
+    *
+    */
+    function authorizeCaller 
+                            (
+                                address authCaller,
+                                bool status
+                            ) 
+                            external
+                            requireContractOwner
+    {
+        authorizedCallers[authCaller] = status ;
+    }
+
+
 
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
@@ -174,12 +202,12 @@ contract FlightSuretyData {
     * @dev Fallback function for funding smart contract.
     *
     */
-    function() 
+   /*  function() 
                             external 
                             payable 
-    {
-        fund();
-    }
+        {
+            fund();
+        } */
 
 
 }

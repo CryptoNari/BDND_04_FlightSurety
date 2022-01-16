@@ -1,4 +1,4 @@
-pragma solidity ^0.4.25;
+pragma solidity >=0.4.25;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
@@ -25,6 +25,10 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
     address private contractOwner;          // Account used to deploy contract
+    
+    bool private operational = true;
+
+    FlightSuretyData flightSuretyData;
 
     struct Flight {
         bool isRegistered;
@@ -50,7 +54,7 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        require(operational, "Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -73,10 +77,12 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
+                                    address flightSuretyDataContract
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
+        flightSuretyData = FlightSuretyData(flightSuretyDataContract);
     }
 
     /********************************************************************************************/
@@ -85,10 +91,20 @@ contract FlightSuretyApp {
 
     function isOperational() 
                             public 
-                            pure 
+                            view 
                             returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        return operational ;
+    }
+
+    function setOperatingStatus
+                            (
+                                bool mode
+                            ) 
+                            external
+                            requireContractOwner 
+    {
+        operational = mode ;
     }
 
     /********************************************************************************************/
@@ -335,3 +351,9 @@ contract FlightSuretyApp {
 // endregion
 
 }   
+
+// Data Contract stub
+
+contract FlightSuretyData {
+    
+}
