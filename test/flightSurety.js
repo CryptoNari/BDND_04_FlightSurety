@@ -123,6 +123,46 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(eventRegistered, true, 'Invalid Registered event emitted')
     assert.equal(eventApplied, true, 'Invalid Applied event emitted')
   });
+
+  it(`(airline) Registration of fifth and subsequent airlines requires multi-party consensus of 50% of registered airlines`, async function () {
+    // ARRANGE
+    let Airline4 = accounts[4];
+    let Airline5 = accounts[5];
+    let Airline6 = accounts[6];
+
+    // Declare and Initialize a variable for event
+    let eventVoted = false
+    let eventRegistered = false
+        
+    // Watch the emitted event Sold()
+    await config.flightSuretyData.ApprovalVoting((err, res) => {
+        eventVoted = true
+    })
+    await config.flightSuretyData.AirlineRegistered((err, res) => {
+        eventRegistered = true
+    })
+   
+    // ACT
+    try {
+        await config.flightSuretyApp.voteForApproval(Airline5, {from: accounts[3]});
+        await config.flightSuretyApp.registerAirline(Airline6, "SixthAirline", {from: Airline4});
+        await config.flightSuretyApp.voteForApproval(Airline6, {from: Airline5});
+        await config.flightSuretyApp.voteForApproval(Airline6, {from: Airline5});
+    }
+    catch(e) {
+
+    }
+    // Check if airline is registered
+    let result1 = await config.flightSuretyData.isAirline.call(Airline5);
+    let result2 = await config.flightSuretyData.isAirline.call(Airline6);
+    let check1 = await config.flightSuretyData.countRegisteredAirlines.call();
+    
+    assert.equal(result1, true, "Airline5 not registered")
+    assert.equal(result2, false, "Airline6 registered, Airline 5 approved double or consensus not working")
+    assert.equal(check1, 5, "Registered Airlines Counter is not 4")
+    assert.equal(eventVoted, true, 'Invalid Vote event emitted')
+    assert.equal(eventRegistered, true, 'Invalid Registered event emitted')
+  });
  /*  it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
     
     // ARRANGE

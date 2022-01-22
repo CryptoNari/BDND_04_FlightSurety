@@ -26,6 +26,8 @@ contract FlightSuretyData {
     struct Airline {
         AirlineState status;
         string name;
+        mapping(address => bool) voters;
+        uint voteCount;
     }
 
     mapping(address => Airline) airlines;
@@ -33,9 +35,11 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-    event AirlineApplied (address airlineAddresse, uint votes );
+    event AirlineApplied (address airlineAddresse, uint votes, uint regAirlines);
+    event ApprovalVoting (address airlineAddresse, uint votes, uint regAirlines);
     event AirlineRegistered (address airlineAddresse, uint regAirlines);
     event AirlineFunded (address airlineAddresse);
+    event ApprovalVoting (address airlineAddresse);
 
 
 
@@ -51,7 +55,8 @@ contract FlightSuretyData {
         contractOwner = msg.sender;
         airlines[firstAirline] = Airline({
             status: AirlineState.Registered,
-            name: "FirstAirline"
+            name: "FirstAirline",
+            voteCount: 0
         });
         regAirlines +=1;
     }
@@ -217,7 +222,8 @@ contract FlightSuretyData {
     function registerAirline
                             (
                                 address airline,
-                                string name   
+                                string name,
+                                address caller   
                             )
                             requireAuthorizedCaller
                             external
@@ -227,17 +233,47 @@ contract FlightSuretyData {
         if (regAirlines < 4) {
             airlines[airline] = Airline({
                 status: AirlineState.Registered,
-                name: name
+                name: name,
+                voteCount: 0
             });
             regAirlines += 1;
             emit AirlineRegistered(airline, regAirlines);
         } else {
             airlines[airline] = Airline({
                 status: AirlineState.Applied,
-                name: name
+                name: name,
+                voteCount: 1
             });
-            emit AirlineApplied(airline, 1);
+            airlines[airline].voters[caller] = true;
+            emit AirlineApplied(airline, 1, regAirlines);
         }  
+    }
+ function approveAirlineConsensus
+                            (
+                                address airline,
+                                address caller
+                            )
+                            requireAuthorizedCaller
+                            external
+    {   
+        require(airlines[airline].status == AirlineState.Applied, "This Airlane is not applying for Registration");
+        require(!airlines[airline].voters[caller], "AuthAirline has already Voted for Approval");
+        
+        airlines[airline].voters[caller] = true;
+        airlines[airline].voteCount += 1;
+        
+        uint multiplier = 100;
+        uint votes = airlines[airline].voteCount * multiplier;
+        uint votesRequired = regAirlines * multiplier / 2;
+
+        if  (votes >= votesRequired) {
+            airlines[airline].status = AirlineState.Registered;
+            regAirlines += 1;
+            emit AirlineRegistered(airline, regAirlines);
+        } else {
+            votes = votes / multiplier;
+            emit ApprovalVoting(airline, votes, regAirlines);
+        }
     }
 
 

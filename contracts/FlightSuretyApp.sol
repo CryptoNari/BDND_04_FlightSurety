@@ -141,8 +141,20 @@ contract FlightSuretyApp {
                             onlyRegisteredAirline(msg.sender)
                             returns(bool success, uint256 votes)
     {
-        dataContract.registerAirline(airline, name);
+        dataContract.registerAirline(airline, name, msg.sender);
         return (success, 1);
+    }
+
+    function voteForApproval
+                            (
+                                address airline
+                            )
+                            external
+                            onlyRegisteredAirline(msg.sender)
+                            returns(bool success, uint256 votes)
+    {
+        dataContract.approveAirlineConsensus(airline, msg.sender);
+        return (success, 1);  // todo: check if return is necessary
     }
 
 
