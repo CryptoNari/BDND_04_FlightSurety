@@ -9,15 +9,30 @@ contract FlightSuretyData {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
-    address private contractOwner;                                      // Account used to deploy contract
-    bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+    address private contractOwner;
+    address private firstAirline = 0xf17f52151EbEF6C7334FAD080c5704D77216b732;                                      // Account used to deploy contract
+    bool private operational = true;                                   // Blocks all state changes throughout the contract if false
 
     mapping(address => bool) private authorizedCallers;
+    uint256 authAirlines = 0; // Airlines authorized for consensus voting 
+
+    enum AirlineState {
+        Applied,
+        Registered,
+        Funded
+    }
+
+    struct Airline {
+        AirlineState status;
+        string name;
+    }
+
+    mapping(address => Airline) airlines;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-
+    event AirlineRegistered (address airlineAddresse);
 
     /**
     * @dev Constructor
@@ -29,6 +44,12 @@ contract FlightSuretyData {
                                 public 
     {
         contractOwner = msg.sender;
+        airlines[firstAirline] = Airline({
+            status: AirlineState.Registered,
+            name: "FirstAirline"
+        });
+        authAirlines.add(1);
+
     }
 
     /********************************************************************************************/
@@ -62,7 +83,7 @@ contract FlightSuretyData {
     */
     modifier requireAuthorizedCaller()
     {
-        require(authorizedCallers[msg.sender] == true, "Caller is not authorised");
+        require(authorizedCallers[msg.sender], "Caller is not authorised");
         _;
     }
 
@@ -121,17 +142,54 @@ contract FlightSuretyData {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
+    function isAirline
+                    
+                    (
+                        address airline
+                    )
+                    external
+                    view
+                    returns(bool)
+    {
+        AirlineState status = airlines[airline].status;
+        if ( status == AirlineState.Registered || status == AirlineState.Funded) {
+            return true;
+        } else {
+            return false;
+        }
+        
+    }
+
    /**
     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
     *
     */   
     function registerAirline
-                            (   
+                            (
+                                address airline,
+                                string name   
                             )
+                            requireAuthorizedCaller
                             external
-                            pure
+                            
     {
+        // First airline on deployment
+        if (authAirlines == 0) {
+            airlines[airline] = Airline({
+                status: AirlineState.Registered,
+                name: name
+            });
+            emit AirlineRegistered(airline); 
+        }
+        // Multi-party consensus from fifth registration
+        if (authAirlines < 5) {
+
+        } else {
+
+        }
+
+        
     }
 
 

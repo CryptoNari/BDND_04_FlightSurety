@@ -5,6 +5,7 @@ pragma solidity >=0.4.25;
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./FlightSuretyData.sol";
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
@@ -28,7 +29,7 @@ contract FlightSuretyApp {
     
     bool private operational = true;
 
-    FlightSuretyData flightSuretyData;
+    FlightSuretyData dataContract;
 
     struct Flight {
         bool isRegistered;
@@ -38,6 +39,9 @@ contract FlightSuretyApp {
     }
     mapping(bytes32 => Flight) private flights;
 
+    
+
+    
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -77,12 +81,12 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
-                                    address flightSuretyDataContract
+                                    address dataContractAddress
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
-        flightSuretyData = FlightSuretyData(flightSuretyDataContract);
+        dataContract = FlightSuretyData(dataContractAddress);
     }
 
     /********************************************************************************************/
@@ -352,8 +356,3 @@ contract FlightSuretyApp {
 
 }   
 
-// Data Contract stub
-
-contract FlightSuretyData {
-    
-}
