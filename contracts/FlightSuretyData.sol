@@ -14,7 +14,8 @@ contract FlightSuretyData {
     bool private operational = true;                                   // Blocks all state changes throughout the contract if false
 
     mapping(address => bool) private authorizedCallers;
-    uint256 authAirlines = 0; // Airlines authorized for consensus voting 
+    uint256 authAirlines = 0; // Airlines authorized for consensus voting
+    uint256 regAirlines = 0; // Airlines registered 
 
     enum AirlineState {
         Applied,
@@ -32,7 +33,11 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-    event AirlineRegistered (address airlineAddresse);
+    event AirlineApplied (address airlineAddresse, uint votes );
+    event AirlineRegistered (address airlineAddresse, uint regAirlines);
+    event AirlineFunded (address airlineAddresse);
+
+
 
     /**
     * @dev Constructor
@@ -48,8 +53,7 @@ contract FlightSuretyData {
             status: AirlineState.Registered,
             name: "FirstAirline"
         });
-        authAirlines.add(1);
-
+        regAirlines +=1;
     }
 
     /********************************************************************************************/
@@ -142,8 +146,35 @@ contract FlightSuretyData {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
-    function isAirline
-                    
+    function countRegisteredAirlines
+                    (
+
+                    )
+                    external
+                    view
+                    returns(uint)
+    {
+        return regAirlines;
+    }
+
+    function inApplyRegisterState              
+                    (
+                        address airline
+                    )
+                    external
+                    view
+                    returns(bool)
+    {
+        AirlineState status = airlines[airline].status;
+        if ( status == AirlineState.Applied) {
+            return true;
+        } else {
+            return false;
+        }
+        
+    }
+    
+    function isAirline             
                     (
                         address airline
                     )
@@ -153,6 +184,24 @@ contract FlightSuretyData {
     {
         AirlineState status = airlines[airline].status;
         if ( status == AirlineState.Registered || status == AirlineState.Funded) {
+            return true;
+        } else {
+            return false;
+        }
+        
+    }
+
+    function isFundedAirline
+                    
+                    (
+                        address airline
+                    )
+                    external
+                    view
+                    returns(bool)
+    {
+        AirlineState status = airlines[airline].status;
+        if (status == AirlineState.Funded) {
             return true;
         } else {
             return false;
@@ -174,22 +223,21 @@ contract FlightSuretyData {
                             external
                             
     {
-        // First airline on deployment
-        if (authAirlines == 0) {
+        // Multi-party consensus from fifth registration
+        if (regAirlines < 4) {
             airlines[airline] = Airline({
                 status: AirlineState.Registered,
                 name: name
             });
-            emit AirlineRegistered(airline); 
-        }
-        // Multi-party consensus from fifth registration
-        if (authAirlines < 5) {
-
+            regAirlines += 1;
+            emit AirlineRegistered(airline, regAirlines);
         } else {
-
-        }
-
-        
+            airlines[airline] = Airline({
+                status: AirlineState.Applied,
+                name: name
+            });
+            emit AirlineApplied(airline, 1);
+        }  
     }
 
 
@@ -236,11 +284,16 @@ contract FlightSuretyData {
     *
     */   
     function fund
-                            (   
+                            ( 
+                                address airline  
                             )
                             public
                             payable
     {
+        require(msg.value >= 10 ether);
+        airlines[airline].status = AirlineState.Funded;
+        authAirlines += 1;
+        emit AirlineFunded(airline);
     }
 
     function getFlightKey

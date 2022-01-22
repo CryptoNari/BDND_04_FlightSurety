@@ -71,6 +71,18 @@ contract FlightSuretyApp {
         _;
     }
 
+    modifier onlyRegisteredAirline(address airline)
+    {
+        require(dataContract.isAirline(airline), "Airline is not registered");
+        _;
+    }
+
+     modifier onlyFundedAirline(address airline)
+    {
+        require(dataContract.isFundedAirline(airline), "Airline is not funded");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
@@ -121,13 +133,16 @@ contract FlightSuretyApp {
     *
     */   
     function registerAirline
-                            (   
+                            (
+                                address airline,
+                                string name   
                             )
                             external
-                            pure
+                            onlyRegisteredAirline(msg.sender)
                             returns(bool success, uint256 votes)
     {
-        return (success, 0);
+        dataContract.registerAirline(airline, name);
+        return (success, 1);
     }
 
 
