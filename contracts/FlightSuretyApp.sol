@@ -137,8 +137,8 @@ contract FlightSuretyApp {
                                 address airline,
                                 string name   
                             )
+                            onlyFundedAirline(msg.sender)
                             external
-                            onlyRegisteredAirline(msg.sender)
                             returns(bool success, uint256 votes)
     {
         dataContract.registerAirline(airline, name, msg.sender);
@@ -149,8 +149,8 @@ contract FlightSuretyApp {
                             (
                                 address airline
                             )
+                            onlyFundedAirline(msg.sender)
                             external
-                            onlyRegisteredAirline(msg.sender)
                             returns(bool success, uint256 votes)
     {
         dataContract.approveAirlineConsensus(airline, msg.sender);

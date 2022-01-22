@@ -225,6 +225,7 @@ contract FlightSuretyData {
                                 string name,
                                 address caller   
                             )
+                            requireIsOperational
                             requireAuthorizedCaller
                             external
                             
@@ -253,6 +254,7 @@ contract FlightSuretyData {
                                 address airline,
                                 address caller
                             )
+                            requireIsOperational
                             requireAuthorizedCaller
                             external
     {   
@@ -323,10 +325,11 @@ contract FlightSuretyData {
                             ( 
                                 address airline  
                             )
+                            requireIsOperational
                             public
                             payable
     {
-        require(msg.value >= 10 ether);
+        require(msg.value >= 10 ether, "Sended Value is less than 10 Ether");
         airlines[airline].status = AirlineState.Funded;
         authAirlines += 1;
         emit AirlineFunded(airline);
@@ -349,12 +352,12 @@ contract FlightSuretyData {
     * @dev Fallback function for funding smart contract.
     *
     */
-   /*  function() 
+    function() 
                             external 
-                            payable 
+                            payable
         {
-            fund();
-        } */
+            fund(msg.sender);
+        }
 
 
 }
