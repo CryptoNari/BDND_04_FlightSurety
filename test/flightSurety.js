@@ -71,6 +71,14 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
+  it(`(airline) check if airline is registered on deployment`, async function () {
+
+    // Check if airline is registered
+    let result = await config.flightSuretyData.isAirline.call(config.firstAirline);
+    
+    assert.equal(result, true, "No Airline registered on Contract deployment")
+  });
+
   it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
     
     // ARRANGE
@@ -89,15 +97,15 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it(`(airline) check if airline is registered on deployment`, async function () {
-
-    // Check if airline is registered
-    let result = await config.flightSuretyData.isAirline.call(config.firstAirline);
-    
-    assert.equal(result, true, "No Airline registered on Contract deployment")
-  });
-
   it(`(airline) check if airline can pay funds after registration`, async function () {
+      // Declare and Initialize a variable for event
+    let eventFunded = false
+        
+    // Watch the emitted event Sold()
+    await config.flightSuretyData.AirlineFunded((err, res) => {
+        eventFunded = true
+    })
+  
     // ACT
     try {
         await config.flightSuretyData.fund(config.firstAirline, {from: config.firstAirline, value: web3.utils.toWei('10','ether')});
@@ -109,7 +117,31 @@ contract('Flight Surety Tests', async (accounts) => {
 
     // ASSERT
     assert.equal(result, true, "Airline should not be able to register another airline if it hasn't provided funding");
+    assert.equal(eventFunded, true, 'Invalid Registered event emitted')
   });
+
+  it(`(airline) check if airline can register a flight`, async function () {
+    // Declare and Initialize a variable for event
+  let eventFlightRegistered = false
+  const timestamp = Math.floor( Date.now()/1000);
+      
+  // Watch the emitted event Sold()
+  await config.flightSuretyData.FlightRegistered((err, res) => {
+      eventFlightRegistered = true
+  })
+
+  // ACT
+  try {
+    await config.flightSuretyApp.registerFlight( timestamp, "ND1309", {from: config.firstAirline});
+    
+  }
+  catch(e) {
+
+  }
+
+  // ASSERT
+  assert.equal(eventFlightRegistered, true, 'Invalid FlightRegistered event emitted')
+});
 
 
   it(`(airline) Only existing airline may register a new airline until there are at least four airlines registered`, async function () {

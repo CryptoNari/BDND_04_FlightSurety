@@ -164,11 +164,28 @@ contract FlightSuretyApp {
     */  
     function registerFlight
                                 (
+                                   uint256 timestamp,
+                                   string name 
+                                )
+                                onlyFundedAirline(msg.sender)
+                                external
+                                returns(bytes32)
+    {
+        bytes32 key = dataContract.registerFlight(timestamp, name);
+        return key;
+    }
+
+    function FlightIsRegistered
+                                (
+                                   uint256 timestamp,
+                                   string name 
                                 )
                                 external
-                                pure
+                                view
+                                returns(bool)
     {
-
+        bytes32 key = getFlightKey(msg.sender, name, timestamp);
+        return dataContract.FlightIsRegistered(key);
     }
     
    /**

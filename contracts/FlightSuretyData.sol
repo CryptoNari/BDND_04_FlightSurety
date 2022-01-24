@@ -32,6 +32,14 @@ contract FlightSuretyData {
 
     mapping(address => Airline) airlines;
 
+    struct Flight {
+        bool isRegistered;
+        uint8 statusCode;
+        uint256 updatedTimestamp;        
+        address airline;
+    }
+    mapping(bytes32 => Flight) private flights;
+
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -39,7 +47,8 @@ contract FlightSuretyData {
     event ApprovalVoting (address airlineAddresse, uint votes, uint regAirlines);
     event AirlineRegistered (address airlineAddresse, uint regAirlines);
     event AirlineFunded (address airlineAddresse);
-    event ApprovalVoting (address airlineAddresse);
+    event FlightRegistered(bytes32 flightKey);
+    
 
 
 
@@ -142,9 +151,19 @@ contract FlightSuretyData {
                             external
                             requireContractOwner
     {
-        authorizedCallers[authCaller] = status ;
+        authorizedCallers[authCaller] = status;
     }
 
+    function FlightIsRegistered
+                            (
+                                bytes32 key
+                            )
+                            external
+                            view
+                            returns(bool)
+    {
+        return flights[key].isRegistered;
+    }
 
 
     /********************************************************************************************/
@@ -160,6 +179,17 @@ contract FlightSuretyData {
                     returns(uint)
     {
         return regAirlines;
+    }
+
+    function countFundedAirlines
+                    (
+
+                    )
+                    external
+                    view
+                    returns(uint)
+    {
+        return authAirlines;
     }
 
     function inApplyRegisterState              
@@ -276,6 +306,30 @@ contract FlightSuretyData {
             votes = votes / multiplier;
             emit ApprovalVoting(airline, votes, regAirlines);
         }
+    }
+
+    function registerFlight
+                                (
+                                   uint256 timestamp,
+                                   string name 
+                                )
+                                requireIsOperational
+                                requireAuthorizedCaller
+                                external
+                                returns(bytes32)
+    {
+        bytes32 flightKey = getFlightKey(msg.sender, name, timestamp);
+        bool registered = flights[flightKey].isRegistered;
+        require(!registered, "Flight is already registered");
+
+        flights[flightKey] = Flight({
+            isRegistered: true,
+            statusCode: 0,
+            updatedTimestamp: timestamp,      
+            airline: msg.sender
+        });
+        emit FlightRegistered (flightKey);
+        return flightKey;
     }
 
 
