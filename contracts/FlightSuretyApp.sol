@@ -31,13 +31,13 @@ contract FlightSuretyApp {
 
     FlightSuretyData dataContract;
 
-    struct Flight {
+    /* struct Flight {
         bool isRegistered;
         uint8 statusCode;
-        uint256 updatedTimestamp;        
+        uint256 departure;        
         address airline;
     }
-    mapping(bytes32 => Flight) private flights;
+    mapping(bytes32 => Flight) private flights; */
 
     
 
@@ -71,15 +71,16 @@ contract FlightSuretyApp {
         _;
     }
 
-    modifier onlyRegisteredAirline(address airline)
-    {
-        require(dataContract.isAirline(airline), "Airline is not registered");
-        _;
-    }
-
      modifier onlyFundedAirline(address airline)
     {
         require(dataContract.isFundedAirline(airline), "Airline is not funded");
+        _;
+    }
+
+     modifier requireRegisteredFlight(address airline, string name, uint256 departure)
+    {
+        bytes32 flightKey = getFlightKey(msg.sender, name, departure);
+        require(dataContract.flightRegistered(flightKey), "Flight is not registered");
         _;
     }
 
@@ -127,7 +128,7 @@ contract FlightSuretyApp {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
-  
+    
    /**
     * @dev Add an airline to the registration queue
     *
@@ -139,22 +140,25 @@ contract FlightSuretyApp {
                             )
                             onlyFundedAirline(msg.sender)
                             external
-                            returns(bool success, uint256 votes)
+                            returns(bool success, uint256 _votes, uint256 _regAirlines)
     {
-        dataContract.registerAirline(airline, name, msg.sender);
-        return (success, 1);
-    }
+        require(!dataContract.isAirline(airline), "Airline already registered"); // State is not Registered/Funded
+        require(!dataContract.doubleVoteCheck(airline, msg.sender), "Caller already Voted");
+    
+        // Multi-party consensus from fifth registration
+        uint256 multiplier = 1000; // used multiplier for higher accuracy
+        uint256 regAirlines = dataContract.countRegisteredAirlines();
+        uint256 currentVotes = dataContract.countCurrentVotes(airline);
+        uint256 currentVotesMult = (currentVotes.add(1)).mul(multiplier);
+        uint256 votesRequiredMult = regAirlines.mul(multiplier.div(2));
+        bool registered = true;
+        
+        // check if consensus required and votes are sufficient
+        if (regAirlines > 3 && currentVotesMult < votesRequiredMult) {
+            registered = false;
+        }
 
-    function voteForApproval
-                            (
-                                address airline
-                            )
-                            onlyFundedAirline(msg.sender)
-                            external
-                            returns(bool success, uint256 votes)
-    {
-        dataContract.approveAirlineConsensus(airline, msg.sender);
-        return (success, 1);  // todo: check if return is necessary
+        return dataContract.registerAirline(airline, name, msg.sender, registered);
     }
 
 
@@ -164,29 +168,31 @@ contract FlightSuretyApp {
     */  
     function registerFlight
                                 (
-                                   uint256 timestamp,
+                                   uint256 departure,
                                    string name 
                                 )
                                 onlyFundedAirline(msg.sender)
                                 external
-                                returns(bytes32)
+                                returns(bool success, bytes32 flightKey)
     {
-        bytes32 key = dataContract.registerFlight(timestamp, name);
-        return key;
+        // check if Flight is already registered
+        require(!dataContract.flightRegistered(getFlightKey(msg.sender, name, departure)));
+        
+        return dataContract.registerFlight(msg.sender, departure, name, flightKey);
     }
 
-    function FlightIsRegistered
+    function getFlightInfo
                                 (
-                                   uint256 timestamp,
-                                   string name 
+                                    uint256 index
                                 )
-                                external
+                                onlyFundedAirline(msg.sender)
                                 view
-                                returns(bool)
+                                external
+                                returns(bool isRegistered, uint8 statusCode, uint256 updatedTimestamp, address airline)
     {
-        bytes32 key = getFlightKey(msg.sender, name, timestamp);
-        return dataContract.FlightIsRegistered(key);
+        return dataContract.getRegisteredFlight(index);
     }
+
     
    /**
     * @dev Called after oracle has updated flight status

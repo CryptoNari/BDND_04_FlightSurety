@@ -7,8 +7,10 @@ contract('Flight Surety Tests', async (accounts) => {
   var config;
   before('setup contract', async () => {
     config = await Test.Config(accounts);
-    await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address, true);
+    await config.flightSuretyData
+        .authorizeCaller(config.flightSuretyApp.address, true);
   });
+  
 
   /****************************************************************************************/
   /* Operations and Settings                                                              */
@@ -101,7 +103,7 @@ contract('Flight Surety Tests', async (accounts) => {
       // Declare and Initialize a variable for event
     let eventFunded = false
         
-    // Watch the emitted event Sold()
+    // Watch the emitted event
     await config.flightSuretyData.AirlineFunded((err, res) => {
         eventFunded = true
     })
@@ -116,32 +118,11 @@ contract('Flight Surety Tests', async (accounts) => {
     let result = await config.flightSuretyData.isFundedAirline.call(config.firstAirline); 
 
     // ASSERT
-    assert.equal(result, true, "Airline should not be able to register another airline if it hasn't provided funding");
+    assert.equal(result, true, "Airline could not go to Funded State");
     assert.equal(eventFunded, true, 'Invalid Registered event emitted')
   });
 
-  it(`(airline) check if airline can register a flight`, async function () {
-    // Declare and Initialize a variable for event
-  let eventFlightRegistered = false
-  const timestamp = Math.floor( Date.now()/1000);
-      
-  // Watch the emitted event Sold()
-  await config.flightSuretyData.FlightRegistered((err, res) => {
-      eventFlightRegistered = true
-  })
-
-  // ACT
-  try {
-    await config.flightSuretyApp.registerFlight( timestamp, "ND1309", {from: config.firstAirline});
-    
-  }
-  catch(e) {
-
-  }
-
-  // ASSERT
-  assert.equal(eventFlightRegistered, true, 'Invalid FlightRegistered event emitted')
-});
+ 
 
 
   it(`(airline) Only existing airline may register a new airline until there are at least four airlines registered`, async function () {
@@ -153,28 +134,27 @@ contract('Flight Surety Tests', async (accounts) => {
 
     // Declare and Initialize a variable for event
     let eventRegistered = false
-    let eventApplied = false
+    let eventinApplication = false
         
-    // Watch the emitted event Sold()
+    // Watch the emitted events 
     await config.flightSuretyData.AirlineRegistered((err, res) => {
         eventRegistered = true
     })
-    await config.flightSuretyData.AirlineApplied((err, res) => {
-        eventApplied = true
+    await config.flightSuretyData.AirlineinApplication((err, res) => {
+        eventinApplication = true
     })
-
+    
     // ACT
     try {
-        await config.flightSuretyData.fund(config.firstAirline, {from: config.firstAirline, value: web3.utils.toWei('10','ether')});
         await config.flightSuretyApp.registerAirline(Airline2, "SecondAirline", {from: config.firstAirline});
-        
         await config.flightSuretyData.fund(Airline2, {from: Airline2, value: web3.utils.toWei('10','ether')});
+
         await config.flightSuretyApp.registerAirline(Airline3, "ThirdAirline", {from: Airline2});
-
         await config.flightSuretyData.fund(Airline3, {from: Airline3, value: web3.utils.toWei('10','ether')});
+        
         await config.flightSuretyApp.registerAirline(Airline4, "FourthAirline", {from: Airline3});
-
         await config.flightSuretyData.fund(Airline4, {from: Airline4, value: web3.utils.toWei('10','ether')});
+        
         await config.flightSuretyApp.registerAirline(Airline5, "FifthAirline", {from: Airline4});
     }
     catch(e) {
@@ -185,15 +165,15 @@ contract('Flight Surety Tests', async (accounts) => {
     let result3 = await config.flightSuretyData.isAirline.call(Airline3);
     let result4 = await config.flightSuretyData.isAirline.call(Airline4);
     let check1 = await config.flightSuretyData.countRegisteredAirlines.call();
-    let result5 = await config.flightSuretyData.inApplyRegisterState.call(Airline5);
+    let result5 = await config.flightSuretyData.isAirline.call(Airline5);
     
     assert.equal(result2, true, "Airline2 not registered")
     assert.equal(result3, true, "Airline3 not registered")
     assert.equal(result4, true, "Airline4 not registered")
     assert.equal(check1, 4, "Registered Airlines Counter is not 4")
-    assert.equal(result5, true, "Airline5 not in Apply State")
+    assert.equal(result5, false, "Airline5 not in Apply State")
     assert.equal(eventRegistered, true, 'Invalid Registered event emitted')
-    assert.equal(eventApplied, true, 'Invalid Applied event emitted')
+    assert.equal(eventinApplication, true, 'Invalid Applied event emitted')
   });
 
   it(`(airline) Registration of fifth and subsequent airlines requires multi-party consensus of 50% of registered airlines`, async function () {
@@ -206,7 +186,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let eventVoted = false
     let eventRegistered = false
         
-    // Watch the emitted event Sold()
+    // Watch the emitted events
     await config.flightSuretyData.ApprovalVoting((err, res) => {
         eventVoted = true
     })
@@ -216,12 +196,12 @@ contract('Flight Surety Tests', async (accounts) => {
    
     // ACT
     try {
-        await config.flightSuretyApp.voteForApproval(Airline5, {from: accounts[3]});
+        await config.flightSuretyApp.registerAirline(Airline5, "FifthAirline", {from: accounts[3]});
         await config.flightSuretyApp.registerAirline(Airline6, "SixthAirline", {from: Airline4});
 
         await config.flightSuretyData.fund(Airline5, {from: Airline5, value: web3.utils.toWei('10','ether')});
-        await config.flightSuretyApp.voteForApproval(Airline6, {from: Airline5});
-        await config.flightSuretyApp.voteForApproval(Airline6, {from: Airline5});
+        await config.flightSuretyApp.registerAirline(Airline6, "SixthAirline", {from: Airline5});
+        await config.flightSuretyApp.registerAirline(Airline6, "SixthAirline", {from: Airline5});
     }
     catch(e) {
 
@@ -237,7 +217,68 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(eventVoted, true, 'Invalid Vote event emitted')
     assert.equal(eventRegistered, true, 'Invalid Registered event emitted')
   });
+
+
+  it(`(airline) check if airline can register a flight`, async function () {
+    // Declare and Initialize a variable for event
+  let eventFlightRegistered = false
+  const departure = Math.floor( Date.now()/1000);
+      
+  // Watch the emitted event eventFlightRegistered()
+  await config.flightSuretyData.FlightRegistered((err, res) => {
+      eventFlightRegistered = true
+  })
+  
+  // ACT
+  try {
+    await config.flightSuretyApp.registerFlight( departure, "ND1309", {from: config.firstAirline});
+    
+  }
+  catch(e) {
+  
+  }
+  
+  let result = await config.flightSuretyApp.getFlightInfo.call(0, {from: config.firstAirline})
+  
+  
+  // ASSERT
+  assert.equal(eventFlightRegistered, true, 'Invalid FlightRegistered event emitted')
+  assert.equal(result.isRegistered, true, 'Flight is not registered')
+  assert.equal(result.airline, config.firstAirline, 'Flight is not registered')
+  });
+
+  
+
+  it(`(insurance) check if costumer can buy insurance`, async function () {
+    // Declare and Initialize a variable for event
+  let eventInsurancePurchased = false
+  
+      
+  // Watch the emitted event InsurancePurchased()
+  await config.flightSuretyData.InsurancePurchased((err, res) => {
+      eventInsurancePurchased = true
+  })
+  
+  // ACT
+  try {
+    await config.flightSuretyData.buyInsurance("ND1309", {from: Account[10], value: web3.utils.toWei('1','ether')});
+    
+  }
+  catch(e) {
+  
+  }
+  let result = await config.flightSuretyApp.getFlightInfo.call(0, {from: config.firstAirline})
+  
+  
+  // ASSERT
+  assert.equal(eventInsurancePurchased, true, 'Invalid FlightRegistered event emitted')
+  //assert.equal(result.isRegistered, true, 'Flight is not registered')
+  //assert.equal(result.airline, config.firstAirline, 'Flight is not registered')
+  });
+ 
  
  
 
 });
+
+
