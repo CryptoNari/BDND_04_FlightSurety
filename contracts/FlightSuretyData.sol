@@ -18,7 +18,7 @@ contract FlightSuretyData {
     uint256 regAirlines = 0; // Airlines registered 
 
     enum AirlineState {
-        NoAction,
+        Init,
         Application,
         Registered,
         Funded
@@ -43,20 +43,24 @@ contract FlightSuretyData {
     bytes32[] registeredFlights;
 
     enum InsuranceState {
+        Init,
         Active,
         Payable,
-        Expired
+        Closed,
+        Received
     }
     
-
     struct Insurance {
         InsuranceState status;
         uint256 insuranceAmount;
         uint256 insurancePayout;
     }
 
-    mapping(address=> mapping(string => Insurance)) insurances;
+    mapping(address=> mapping(bytes32 => Insurance)) insurances;
     mapping(address=> uint256) passengerBalances;
+
+    uint private constant MAX_INSURANCE_AMOUNT = 1 ether;
+    
 
 
     /********************************************************************************************/
@@ -231,16 +235,27 @@ contract FlightSuretyData {
                     view
                     returns(bool)
     {
-        return ( airlines[airline].status == AirlineState.NoAction);
+        return ( airlines[airline].status == AirlineState.Init);
     }
     
-    // App.modifier required registered flight 
+    // App.modifier requireRegisteredFlight() , App.registerAirline()
     function flightRegistered(bytes32 flightKey)
                     external
                     view
                     returns(bool)
     {
         return (flights[flightKey].isRegistered);
+    }
+
+    // ****
+    function getpassengerBalance()
+                    requireAuthorizedCaller
+                    external
+                    view
+                    returns(uint256)
+                    
+    {
+        return passengerBalances[tx.origin];
     }
     
 
@@ -311,7 +326,7 @@ contract FlightSuretyData {
             isRegistered: true,
             statusCode: 0,
             departure: _departure,      
-            airline: tx.origin
+            airline: airline
         });
 
         registeredFlights.push(flightKey);
@@ -320,6 +335,7 @@ contract FlightSuretyData {
         return (true, flightKey);
     }
 
+    // ****
     function getRegisteredFlightsCount
                                 (
                                 )
@@ -331,7 +347,7 @@ contract FlightSuretyData {
     {
         return registeredFlights.length;
     }
-
+    // ****
     function getRegisteredFlight
                                 (
                                     uint256 index
@@ -354,14 +370,26 @@ contract FlightSuretyData {
     */   
     function buyInsurance
                             (  
-                                string flight
+                                address airline,
+                                string flight,
+                                uint256 departure
                             )
                             requireIsOperational
-                            public
+                            external
                             payable
     {
-        //require(insurances[buyer][flight].status, "Insurance Policy already exists");
-        insurances[msg.sender][flight] = Insurance(InsuranceState.Active, msg.value, 1);
+        bytes32 flightKey = getFlightKey(airline, flight, departure);
+        require(msg.value <= MAX_INSURANCE_AMOUNT, "Maximum allowed insurance is 1 ether");
+        require(insurances[msg.sender][flightKey].status == InsuranceState.Init, "Insurance Policy already exists");
+        require(flights[flightKey].isRegistered, "Flight is not registered");
+
+        uint256 insurancePayout = msg.value.add(msg.value.div(2)); // SafeMath converted 1.5x payout
+        
+        insurances[msg.sender][flightKey] = Insurance({
+            status: InsuranceState.Active,
+            insuranceAmount: msg.value,
+            insurancePayout: insurancePayout
+        });
         emit InsurancePurchased(msg.sender, flight, msg.value);
     }
 
@@ -369,11 +397,21 @@ contract FlightSuretyData {
      *  @dev Credits payouts to insurees
     */
     function creditInsurees
-                                (
-                                )
-                                external
-                                pure
+                            (
+                                address airline,
+                                string flight,
+                                uint256 departure
+                            )
+                            requireIsOperational
+                            external
     {
+        bytes32 flightKey = getFlightKey(airline, flight, departure);
+        require(flights[flightKey].statusCode == 20, "Insurance does not exist"); // double test
+        require(insurances[msg.sender][flightKey].status == InsuranceState.Payable, "Insurance payout not due");
+        // require(true, "");
+
+        insurances[msg.sender][flightKey].status = InsuranceState.Received;
+        passengerBalances[msg.sender] = insurances[msg.sender][flightKey].insurancePayout;
     }
     
 
@@ -384,9 +422,13 @@ contract FlightSuretyData {
     function pay
                             (
                             )
+                            requireIsOperational
                             external
-                            pure
     {
+        require(true, "");
+        uint256 payout = passengerBalances[msg.sender];
+        passengerBalances[msg.sender] = 0;
+        msg.sender.transfer(payout);
     }
 
    /**

@@ -181,6 +181,7 @@ contract FlightSuretyApp {
         return dataContract.registerFlight(msg.sender, departure, name, flightKey);
     }
 
+    // ****
     function getFlightInfo
                                 (
                                     uint256 index
@@ -193,7 +194,18 @@ contract FlightSuretyApp {
         return dataContract.getRegisteredFlight(index);
     }
 
-    
+    // ****
+    function getPassengerBalance
+                                (
+                                )
+                                view
+                                external
+                                returns(uint256)
+    {
+        return dataContract.getpassengerBalance();
+    }
+
+
    /**
     * @dev Called after oracle has updated flight status
     *

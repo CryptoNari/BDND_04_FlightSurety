@@ -11,6 +11,9 @@ contract('Flight Surety Tests', async (accounts) => {
         .authorizeCaller(config.flightSuretyApp.address, true);
   });
   
+  const departure = Math.floor( Date.now()/1000);
+
+  
 
   /****************************************************************************************/
   /* Operations and Settings                                                              */
@@ -222,7 +225,7 @@ contract('Flight Surety Tests', async (accounts) => {
   it(`(airline) check if airline can register a flight`, async function () {
     // Declare and Initialize a variable for event
   let eventFlightRegistered = false
-  const departure = Math.floor( Date.now()/1000);
+  
       
   // Watch the emitted event eventFlightRegistered()
   await config.flightSuretyData.FlightRegistered((err, res) => {
@@ -261,13 +264,13 @@ contract('Flight Surety Tests', async (accounts) => {
   
   // ACT
   try {
-    await config.flightSuretyData.buyInsurance("ND1309", {from: Account[10], value: web3.utils.toWei('1','ether')});
+    await config.flightSuretyData.buyInsurance(config.firstAirline, "ND1309", departure, {from: Account[10], value: web3.utils.toWei('1','ether')});
     
   }
   catch(e) {
   
   }
-  let result = await config.flightSuretyApp.getFlightInfo.call(0, {from: config.firstAirline})
+  //let result = await config.flightSuretyApp.getFlightInfo.call(0, {from: config.firstAirline})
   
   
   // ASSERT
