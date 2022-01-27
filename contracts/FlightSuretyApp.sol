@@ -27,21 +27,8 @@ contract FlightSuretyApp {
 
     address private contractOwner;          // Account used to deploy contract
     
-    bool private operational = true;
-
     FlightSuretyData dataContract;
 
-    /* struct Flight {
-        bool isRegistered;
-        uint8 statusCode;
-        uint256 departure;        
-        address airline;
-    }
-    mapping(bytes32 => Flight) private flights; */
-
-    
-
-    
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -58,7 +45,7 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(operational, "Contract is currently not operational");  
+        require(isOperational(), "Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -111,7 +98,7 @@ contract FlightSuretyApp {
                             view 
                             returns(bool) 
     {
-        return operational ;
+        return dataContract.isOperational();
     }
 
     function setOperatingStatus
@@ -121,14 +108,14 @@ contract FlightSuretyApp {
                             external
                             requireContractOwner 
     {
-        operational = mode ;
+        dataContract.setOperatingStatus(mode);
     }
 
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
-    
+
    /**
     * @dev Add an airline to the registration queue
     *
@@ -138,6 +125,7 @@ contract FlightSuretyApp {
                                 address airline,
                                 string name   
                             )
+                            requireIsOperational
                             onlyFundedAirline(msg.sender)
                             external
                             returns(bool success, uint256 _votes, uint256 _regAirlines)
@@ -171,6 +159,7 @@ contract FlightSuretyApp {
                                    uint256 departure,
                                    string name 
                                 )
+                                requireIsOperational
                                 onlyFundedAirline(msg.sender)
                                 external
                                 returns(bool success, bytes32 flightKey)
@@ -217,9 +206,11 @@ contract FlightSuretyApp {
                                     uint256 timestamp,
                                     uint8 statusCode
                                 )
+                                requireIsOperational
                                 internal
-                                pure
     {
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        dataContract.updateFlightStatus(flightKey, statusCode);
     }
 
 
@@ -230,6 +221,7 @@ contract FlightSuretyApp {
                             string flight,
                             uint256 timestamp                            
                         )
+                        requireIsOperational
                         external
     {
         uint8 index = getRandomIndex(msg.sender);

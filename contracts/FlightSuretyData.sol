@@ -38,6 +38,7 @@ contract FlightSuretyData {
         uint8 statusCode;
         uint256 departure;        
         address airline;
+        string name;
     }
     mapping(bytes32 => Flight) private flights;
     bytes32[] registeredFlights;
@@ -72,7 +73,8 @@ contract FlightSuretyData {
     event AirlineFunded (address airlineAddresse);
     event FlightRegistered(bytes32 flightKey);
     event InsurancePurchased(address buyer,string flight, uint256 amount);
-    event Bugfix (uint256 reg);
+    event FlightStatusProcessed(string flight, uint8 statusCode);
+    //event Bugfix (uint256 reg);
     
 
 
@@ -270,7 +272,6 @@ contract FlightSuretyData {
                                 address caller,
                                 bool registered   
                             )
-                            requireIsOperational
                             requireAuthorizedCaller
                             external
                             returns(bool success, uint256 _votes, uint256 _regAirlines)                            
@@ -316,7 +317,6 @@ contract FlightSuretyData {
                                string name,
                                bytes32 flightKey
                             )
-                            requireIsOperational
                             requireAuthorizedCaller
                             external
                             returns(bool success, bytes32 _flightKey)
@@ -326,7 +326,8 @@ contract FlightSuretyData {
             isRegistered: true,
             statusCode: 0,
             departure: _departure,      
-            airline: airline
+            airline: airline,
+            name: name
         });
 
         registeredFlights.push(flightKey);
@@ -335,11 +336,19 @@ contract FlightSuretyData {
         return (true, flightKey);
     }
 
+    function updateFlightStatus(bytes32 flightKey, uint8 statusCode)
+                                requireIsOperational
+                                requireAuthorizedCaller
+                                external
+    {
+        flights[flightKey].statusCode = statusCode;
+        emit FlightStatusProcessed(flights[flightKey].name, statusCode);
+    }
+
     // ****
     function getRegisteredFlightsCount
                                 (
                                 )
-                                requireIsOperational
                                 requireAuthorizedCaller
                                 external
                                 view
@@ -352,7 +361,6 @@ contract FlightSuretyData {
                                 (
                                     uint256 index
                                 )
-                                requireIsOperational
                                 requireAuthorizedCaller
                                 external
                                 view
