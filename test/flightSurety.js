@@ -143,9 +143,6 @@ contract('Flight Surety Tests', async (accounts) => {
     await config.flightSuretyData.AirlineRegistered((err, res) => {
         eventRegistered = true
     })
-    await config.flightSuretyData.AirlineinApplication((err, res) => {
-        eventinApplication = true
-    })
     
     // ACT
     try {
@@ -176,7 +173,6 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(check1, 4, "Registered Airlines Counter is not 4")
     assert.equal(result5, false, "Airline5 not in Apply State")
     assert.equal(eventRegistered, true, 'Invalid Registered event emitted')
-    assert.equal(eventinApplication, true, 'Invalid Applied event emitted')
   });
 
   it(`(airline) Registration of fifth and subsequent airlines requires multi-party consensus of 50% of registered airlines`, async function () {
