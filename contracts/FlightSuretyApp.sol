@@ -135,13 +135,12 @@ contract FlightSuretyApp {
 
     // ****
     function getFlightInfo(uint256 _index)
-        onlyFundedAirline(msg.sender)
         view
         external
         returns (
             bool isRegistered,
             uint8 statusCode,
-            uint256 updatedTimestamp,
+            uint256 departure,
             address airline
         )
     {
@@ -179,7 +178,7 @@ contract FlightSuretyApp {
         uint256 _timestamp                            
     )
         requireIsOperational
-        external
+        public
     {
         uint8 index = getRandomIndex(msg.sender);
         // Generate a unique key for storing the request
@@ -207,7 +206,7 @@ contract FlightSuretyApp {
     uint256 public constant REGISTRATION_FEE = 1 ether;
 
     // Number of oracles that must respond for valid status
-    uint256 private constant MIN_RESPONSES = 3;
+    uint256 private constant MIN_RESPONSES = 6;
 
 
     struct Oracle {
@@ -298,14 +297,14 @@ contract FlightSuretyApp {
         uint256 _timestamp,
         uint8 _statusCode
     )
-        external
+        public
     {   
         uint8 index0 = oracles[msg.sender].indexes[0];
         uint8 index1 = oracles[msg.sender].indexes[1];
         uint8 index2 = oracles[msg.sender].indexes[2];
 
         require(
-            (index0 == _index) || (index1 == _index) || (index2 == _index),
+            ((index0 == _index) || (index1 == _index) || (index2 == _index)),
             "Index does not match oracle request"
         );
 
@@ -329,7 +328,7 @@ contract FlightSuretyApp {
         if (oracleResponses[key].responses[_statusCode].length >= MIN_RESPONSES) {
 
             emit FlightStatusInfo(_airline, _flight, _timestamp, _statusCode);
-
+            
             // Handle flight status as appropriate
             processFlightStatus(_airline, _flight, _timestamp, _statusCode);
         }

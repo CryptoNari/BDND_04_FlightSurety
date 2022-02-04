@@ -12,6 +12,7 @@ contract('Flight Surety Tests', async (accounts) => {
   });
   
   const departure = Math.floor( Date.now()/1000);
+  
 
   
 
@@ -103,7 +104,8 @@ contract('Flight Surety Tests', async (accounts) => {
   });
 
   it(`(airline) check if airline can pay funds after registration`, async function () {
-      // Declare and Initialize a variable for event
+    
+    // Declare and Initialize a variable for event
     let eventFunded = false
         
     // Watch the emitted event
@@ -123,12 +125,12 @@ contract('Flight Surety Tests', async (accounts) => {
     // ASSERT
     assert.equal(result, true, "Airline could not go to Funded State");
     assert.equal(eventFunded, true, 'Invalid Registered event emitted')
+  
   });
-
- 
 
 
   it(`(airline) Only existing airline may register a new airline until there are at least four airlines registered`, async function () {
+    
     // ARRANGE
     let Airline2 = accounts[2];
     let Airline3 = accounts[3];
@@ -170,10 +172,12 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result2, true, "Airline2 not registered")
     assert.equal(result3, true, "Airline3 not registered")
     assert.equal(result4, true, "Airline4 not registered")
-    assert.equal(check1, 4, "Registered Airlines Counter is not 4")
+    assert.equal(check1, 4, "Registered Airlines Counter is incorrect")
     assert.equal(result5, false, "Airline5 not in Apply State")
     assert.equal(eventRegistered, true, 'Invalid Registered event emitted')
+  
   });
+
 
   it(`(airline) Registration of fifth and subsequent airlines requires multi-party consensus of 50% of registered airlines`, async function () {
     // ARRANGE
@@ -212,67 +216,62 @@ contract('Flight Surety Tests', async (accounts) => {
     
     assert.equal(result1, true, "Airline5 not registered")
     assert.equal(result2, false, "Airline6 registered, Airline 5 approved double or consensus not working")
-    assert.equal(check1, 5, "Registered Airlines Counter is not 4")
+    assert.equal(check1, 5, "Registered Airlines Counter is incorrect")
     assert.equal(eventVoted, true, 'Invalid Vote event emitted')
     assert.equal(eventRegistered, true, 'Invalid Registered event emitted')
+  
   });
 
 
   it(`(airline) check if airline can register a flight`, async function () {
-    // Declare and Initialize a variable for event
-  let eventFlightRegistered = false
-  
-      
-  // Watch the emitted event eventFlightRegistered()
-  await config.flightSuretyData.FlightRegistered((err, res) => {
-      eventFlightRegistered = true
-  })
-  
-  // ACT
-  try {
-    await config.flightSuretyApp.registerFlight( departure, "ND1309", {from: config.firstAirline});
     
-  }
-  catch(e) {
+    // Declare and Initialize a variable for event
+    let eventFlightRegistered = false
+        
+    // Watch the emitted event eventFlightRegistered()
+    await config.flightSuretyData.FlightRegistered((err, res) => {
+        eventFlightRegistered = true
+    })
+    
+    // ACT
+    try {
+      await config.flightSuretyApp.registerFlight( departure, "ND1309", {from: config.firstAirline});    
+    }
+    catch(e) {
+    
+    }
+    
+    let result = await config.flightSuretyApp.getFlightInfo.call(0, {from: config.firstAirline})  
+    
+    // ASSERT
+    assert.equal(eventFlightRegistered, true, 'Invalid FlightRegistered event emitted')
+    assert.equal(result.isRegistered, true, 'Flight is not registered')
+    assert.equal(result.airline, config.firstAirline, 'Flight is not registered')
   
-  }
-  
-  let result = await config.flightSuretyApp.getFlightInfo.call(0, {from: config.firstAirline})
-  
-  
-  // ASSERT
-  assert.equal(eventFlightRegistered, true, 'Invalid FlightRegistered event emitted')
-  assert.equal(result.isRegistered, true, 'Flight is not registered')
-  assert.equal(result.airline, config.firstAirline, 'Flight is not registered')
   });
-
   
 
   it(`(insurance) check if costumer can buy insurance`, async function () {
-    // Declare and Initialize a variable for event
-  let eventInsurancePurchased = false
-  
-      
-  // Watch the emitted event InsurancePurchased()
-  await config.flightSuretyData.InsurancePurchased((err, res) => {
-      eventInsurancePurchased = true
-  })
-  
-  // ACT
-  try {
-    await config.flightSuretyData.buyInsurance(config.firstAirline, "ND1309", departure, {from: Account[10], value: web3.utils.toWei('1','ether')});
     
-  }
-  catch(e) {
+    // Declare and Initialize a variable for event
+    let eventInsurancePurchased = false
+        
+    // Watch the emitted event InsurancePurchased()
+    await config.flightSuretyData.InsurancePurchased((err, res) => {
+        eventInsurancePurchased = true
+    })
+    
+    // ACT
+    try {
+      await config.flightSuretyData.buyInsurance(config.firstAirline, "ND1309", departure, {from: Account[10], value: web3.utils.toWei('1','ether')});  
+    }
+    catch(e) {
+    
+    }
+        
+    // ASSERT
+    assert.equal(eventInsurancePurchased, true, 'Invalid FlightRegistered event emitted')
   
-  }
-  //let result = await config.flightSuretyApp.getFlightInfo.call(0, {from: config.firstAirline})
-  
-  
-  // ASSERT
-  assert.equal(eventInsurancePurchased, true, 'Invalid FlightRegistered event emitted')
-  //assert.equal(result.isRegistered, true, 'Flight is not registered')
-  //assert.equal(result.airline, config.firstAirline, 'Flight is not registered')
   });
  
  

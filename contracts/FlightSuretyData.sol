@@ -84,7 +84,7 @@ contract FlightSuretyData {
     event AirlineRegistered (address airlineAddress, uint regAirlines);
     event AirlineFunded (address airlineAddress);
     
-    event FlightStatusProcessed(string flight, uint8 statusCode);
+    event FlightStatusProcessed(bool sender, string flight, uint8 statusCode);
     event FlightRegistered(bytes32 flightKey);
     
     event InsurancePurchased(address insuree,string flight);
@@ -100,12 +100,25 @@ contract FlightSuretyData {
        public 
     {
         contractOwner = msg.sender;
+        // Add Firts Airline on Contract deployment
         airlines[firstAirline] = Airline({
             status: AirlineState.Registered,
             name: "FirstAirline",
             voteCount: 0
         });
         regAirlines = regAirlines.add(1);
+
+        // Add sample flights on Contract deployment
+        bytes32 key1 = getFlightKey(firstAirline, "Flight1", now + 1 days);
+        bytes32 key2 = getFlightKey(firstAirline, "Flight2", now + 2 days);
+        bytes32 key3 = getFlightKey(firstAirline, "Flight3", now + 3 days);
+        
+        flights[key1]= Flight(true, 0, now + 1 days, firstAirline, "Flight1");
+        registeredFlights.push(key1);
+        flights[key2]= Flight(true, 0, now + 2 days, firstAirline, "Flight2");
+        registeredFlights.push(key2);
+        flights[key3]= Flight(true, 0, now + 3 days, firstAirline, "Flight3");
+        registeredFlights.push(key3);
     }
 
     /**************************************************************************/
@@ -303,8 +316,19 @@ contract FlightSuretyData {
                                 external
     {
         flights[_flightKey].statusCode = _statusCode;
-        emit FlightStatusProcessed(flights[_flightKey].name, _statusCode);
+        emit FlightStatusProcessed(authorizedCallers[msg.sender], flights[_flightKey].name, _statusCode);
     }
+
+    // ****
+    /* function getFlightStatus(bytes32 _flightKey)
+        requireAuthorizedCaller
+        external
+        view
+        returns(uint8)
+    {
+        return registeredFlights.length;
+    } */
+
 
     // ****
     function getRegisteredFlightsCount()

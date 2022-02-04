@@ -17,15 +17,31 @@
             aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+              <a class="nav-item nav-link active" href="#">Contract <span class="sr-only">(current)</span></a>
+              <a class="nav-item nav-link" href="#">Airlines</a>
+              <a class="nav-item nav-link" href="#">Flights</a>
+              <a class="nav-item nav-link " href="#">Insurances</a>
+            </div>
+          </div>
     </nav>
 
-    <main class="container">
-
-        <div id="display-wrapper" class="top-20">
+    <main>
+        <div class="container">
+            <div id="display-wrapper" class="top-20">
+            </div>
+            
         </div>
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
-        </div>
+        <div class="container">
+            <div id="display-wrapper2" class="top-20">
+            </div>
+            <div class="row top-20">
+                <label class="form">Flight</label> 
+                <input type="text" id="flight-number"> 
+                <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+            </div>
+        
     </main>
 
 </body>
