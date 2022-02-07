@@ -138,10 +138,12 @@ contract FlightSuretyApp {
         view
         external
         returns (
+            uint256 index,
             bool isRegistered,
             uint8 statusCode,
             uint256 departure,
-            address airline
+            address airline,
+            string flightode
         )
     {
         return dataContract.getRegisteredFlight(_index);

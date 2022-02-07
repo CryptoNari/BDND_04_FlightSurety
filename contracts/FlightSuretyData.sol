@@ -45,9 +45,10 @@ contract FlightSuretyData {
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
-        uint256 departure;        
+        uint256 departure;
+        uint256 lastUpdate;      
         address airline;
-        string name;
+        string flightCode;
     }
     mapping(bytes32 => Flight) private flights;
     bytes32[] registeredFlights;
@@ -113,11 +114,11 @@ contract FlightSuretyData {
         bytes32 key2 = getFlightKey(firstAirline, "Flight2", now + 2 days);
         bytes32 key3 = getFlightKey(firstAirline, "Flight3", now + 3 days);
         
-        flights[key1]= Flight(true, 0, now + 1 days, firstAirline, "Flight1");
+        flights[key1]= Flight(true, 0, now + 1 days, now, firstAirline, "Flight1");
         registeredFlights.push(key1);
-        flights[key2]= Flight(true, 0, now + 2 days, firstAirline, "Flight2");
+        flights[key2]= Flight(true, 0, now + 2 days, now, firstAirline, "Flight2");
         registeredFlights.push(key2);
-        flights[key3]= Flight(true, 0, now + 3 days, firstAirline, "Flight3");
+        flights[key3]= Flight(true, 0, now + 3 days, now, firstAirline, "Flight3");
         registeredFlights.push(key3);
     }
 
@@ -290,7 +291,7 @@ contract FlightSuretyData {
     function registerFlight(
        address _airline, 
        uint256 _departure,
-       string _name,
+       string _flightCode,
        bytes32 _flightKey
     )
         requireAuthorizedCaller
@@ -300,9 +301,10 @@ contract FlightSuretyData {
         flights[_flightKey] = Flight({
             isRegistered: true,
             statusCode: 0,
-            departure: _departure,      
+            departure: _departure,
+            lastUpdate: now,      
             airline: _airline,
-            name: _name
+            flightCode: _flightCode
         });
 
         registeredFlights.push(_flightKey);
@@ -316,7 +318,7 @@ contract FlightSuretyData {
                                 external
     {
         flights[_flightKey].statusCode = _statusCode;
-        emit FlightStatusProcessed(authorizedCallers[msg.sender], flights[_flightKey].name, _statusCode);
+        emit FlightStatusProcessed(authorizedCallers[msg.sender], flights[_flightKey].flightCode, _statusCode);
     }
 
     // ****
@@ -332,7 +334,6 @@ contract FlightSuretyData {
 
     // ****
     function getRegisteredFlightsCount()
-        requireAuthorizedCaller
         external
         view
         returns(uint256)
@@ -342,34 +343,37 @@ contract FlightSuretyData {
 
     // ****
     function getRegisteredFlight(uint256 _index)
-        requireAuthorizedCaller
         external
         view
         returns(
+            uint256 index,
             bool isRegistered,
             uint8 statusCode,
             uint256 departure,
-            address airline
+            address airline,
+            string flightCode
         )
     {
         Flight storage flight = flights[registeredFlights[_index]];
 
+        index = _index;
         isRegistered = flight.isRegistered;
         statusCode = flight.statusCode;
         departure = flight.departure;
         airline = flight.airline;
+        flightCode = flight.flightCode;
     }
 
    /**
     * @dev Buy insurance for a flight
     *
     */   
-    function buyInsurance (address _airline, string _flight, uint256 _departure)
+    function buyInsurance (address _airline, string _flightCode, uint256 _departure)
         requireIsOperational
         external
         payable
     {
-        bytes32 flightKey = getFlightKey(_airline, _flight, _departure);
+        bytes32 flightKey = getFlightKey(_airline, _flightCode, _departure);
         require(
             msg.value <= MAX_INSURANCE_AMOUNT,
             "Maximum allowed insurance is 1 ether"
@@ -388,7 +392,7 @@ contract FlightSuretyData {
             insuranceAmount: msg.value,
             insurancePayout: insurancePayout
         });
-        emit InsurancePurchased(msg.sender, _flight);
+        emit InsurancePurchased(msg.sender, _flightCode);
     }
 
     /**
@@ -396,13 +400,13 @@ contract FlightSuretyData {
     */
     function creditInsurees (
         address _airline,
-        string _flight,
+        string _flightCode,
         uint256 _departure
     )
         requireIsOperational
         external
     {
-        bytes32 flightKey = getFlightKey(_airline, _flight, _departure);
+        bytes32 flightKey = getFlightKey(_airline, _flightCode, _departure);
         require(
             insurances[msg.sender][flightKey].status == InsuranceState.Payable,
             "Insurance payout not due"
@@ -411,7 +415,7 @@ contract FlightSuretyData {
         insurances[msg.sender][flightKey].status = InsuranceState.Received;
         uint256 payout = insurances[msg.sender][flightKey].insurancePayout;
         passengerBalances[msg.sender] = payout;
-        emit PayoutToInsuree(msg.sender, _flight);
+        emit PayoutToInsuree(msg.sender, _flightCode);
     }
     
 

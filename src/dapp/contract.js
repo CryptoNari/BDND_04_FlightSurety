@@ -1,4 +1,5 @@
 import FlightSuretyApp from '../../build/contracts/FlightSuretyApp.json';
+import FlightSuretyData from '../../build/contracts/FlightSuretyData.json';
 import Config from './config.json';
 import Web3 from 'web3';
 
@@ -8,6 +9,7 @@ export default class Contract {
         let config = Config[network];
         this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
+        this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];
@@ -38,6 +40,39 @@ export default class Contract {
        self.flightSuretyApp.methods
             .isOperational()
             .call({ from: self.owner}, callback);
+    }
+
+    getRegisteredFlightsCount(callback) {
+        let self = this;
+        self.flightSuretyData.methods
+            .getRegisteredFlightsCount()
+            .call({ from: self.owner}, callback);
+    }
+
+    getRegisteredFlight(index, callback) {
+        let self = this;
+        let payload = {
+            index: index
+        }
+        self.flightSuretyData.methods
+            .getRegisteredFlight(payload.index)
+            .call({ from: self.owner}, (error, result) => {
+                callback(error, result);
+            });
+    }
+
+    buyInsurance(payload, callback) {
+        let self = this;
+        let value = this.web3.utils.toWei(payload.value.toString(), "ether");
+        self.flightSuretyData.methods
+            .buyinsurance(
+                payload.airline,
+                payload.flightCode,
+                payload.departure,
+                { from: payload.insuree, value: value }, 
+                (error, result) => {
+                    callback(error, result);
+                });
     }
 
     fetchFlightStatus(flight, callback) {

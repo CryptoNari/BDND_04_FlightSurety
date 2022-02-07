@@ -19,28 +19,56 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-              <a class="nav-item nav-link active" href="#">Contract <span class="sr-only">(current)</span></a>
-              <a class="nav-item nav-link" href="#">Airlines</a>
-              <a class="nav-item nav-link" href="#">Flights</a>
-              <a class="nav-item nav-link " href="#">Insurances</a>
+              <a id="nav-contract" class="nav-item nav-link active" href="#">Contract <span class="sr-only">(current)</span></a>
+              <a id="nav-airlines" class="nav-item nav-link" href="#">Airlines</a>
+              <a id="nav-flights" class="nav-item nav-link" href="#">Flights</a>
+              <a id="nav-insurance" class="nav-item nav-link " href="#">Insurances</a>
             </div>
           </div>
     </nav>
 
     <main>
-        <div class="container">
+        <div class="container" id="contract-forms" style="display: block">
+            <h2>Contracts</h2>
             <div id="display-wrapper" class="top-20">
+            </div>
+            <div class="row top-20">
+                <label class="form">Airline</label> 
+                <input type="text" id="flight-airline">
+                <label class="form">Flight-Code</label>  
+                <input type="text" id="flight-code">
+                <label class="form">Departure</label>
+                <input type="text" id="flight-departure">  
+                <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
             </div>
             
         </div>
-        <div class="container">
-            <div id="display-wrapper2" class="top-20">
-            </div>
-            <div class="row top-20">
-                <label class="form">Flight</label> 
-                <input type="text" id="flight-number"> 
-                <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
-            </div>
+
+        <div class="container" id="airlines-forms" style="display: none">
+            <h2>Airlines</h2>
+        </div>
+        
+        <div class="container" id="flights-forms"style="display: none">
+            <h2>Flights</h2>
+            <btn class="btn btn-primary" id="load-flights">Load/Refresh Flights</btn>
+            <table class="table" id="flights-table">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Airline</th>
+                    <th scope="col">FlightCode</th>
+                    <th scope="col">StatusCode</th>
+                  </tr>
+                </thead>
+                <tbody id="table-body">
+
+                </tbody>
+            </table>   
+        </div>
+
+        <div class="container" id="insurance-forms" style="display: none">
+            <h2>Insurances</h2>
+        </div>
         
     </main>
 
