@@ -43,33 +43,45 @@ import './flightsurety.css';
 
         // User-submitted transaction
         DOM.elid('load-flights').addEventListener('click', () => {
-            contract.getRegisteredFlightsCount((error, result) => {
-                console.log(error,result);
-                for(let i = 0 ; i < result ; i ++ ) {
-                    contract.getRegisteredFlight(i, (error, result) => {
-                        showFlights(result);
-                    });
-                };
-            });
+            getFlights();
         })
 
         DOM.elid("buy-insurance").addEventListener("click", async () => {
-            let payload = {
-                airline: DOM.elid("buy-airline").value,
-                flightCode: DOM.elid("buy-flight-code").value,
-                departure: DOM.elid("buy-departure").value,
-                insuree: DOM.elid("insurance-buyer").value,
-                value: DOM.elid("insurance-paid").value
+            let flight = DOM.elid("flight").value;
+            let account = DOM.elid("insuree").value;
+            let i;
+            let balance = contract.getBalance(account);
+            
+
+            switch(flight) {
+                case "Flight1": i = 0
+                break;
+                case "Flight2": i = 1
+                break;
+                case "Flight3": i = 2
+                break;            
             };
 
-            let err, result, label;
+            let airline = DOM.elid("table-body").rows[i].cells.item(2).innerHTML;
+            let departure = DOM.elid("table-body").rows[i].cells.item(3).innerHTML;
+
+            
+            let payload = {
+                airline: airline,
+                flightCode: flight,
+                departure: departure,
+                insuree: account,
+                value: DOM.elid("value").value
+            };
+            console.log(payload);
+
             try {
-                await contract.buyInsurance(payload);
+                contract.buyInsurance(payload);
             } catch (e) {
-                err = e;
+                let err = e;
                 console.log(e);
             } finally {
-    
+                balance = contract.getBalance(account);
             }
         });
 
@@ -77,7 +89,7 @@ import './flightsurety.css';
 
         // Read transaction
         contract.isOperational((error, result) => {
-            console.log(error,result);
+            // console.log(error,result);
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
     
@@ -90,11 +102,25 @@ import './flightsurety.css';
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
         })
+
+        function getFlights() {
+            removeFlights();
+            contract.getRegisteredFlightsCount((error, result) => {
+                // console.log(error,result);
+                for(let i = 0 ; i < result ; i ++ ) {
+                    contract.getRegisteredFlight(i, (error, result) => {
+                        showFlights(result);
+                    });
+                };
+            });
+        }
     
     });
     
 
 })();
+
+
 
 
 function display(title, description, results) {
@@ -112,12 +138,20 @@ function display(title, description, results) {
 
 }
 
+function removeFlights() {
+    let table = DOM.elid("flights-table");
+    let tableBody = DOM.tbody({id: 'table-body'});
+    DOM.elid("table-body").remove();
+    table.append(tableBody);
+}
+
 function showFlights(results) {
     let displayDiv = DOM.elid("table-body");
     let trow = DOM.tr();
     trow.appendChild(DOM.th({scope: 'row'}, results.index));
     trow.appendChild(DOM.td(results.flightCode));
     trow.appendChild(DOM.td(results.airline));
+    trow.appendChild(DOM.td(results.departure));
     trow.appendChild(DOM.td(results.statusCode));
     displayDiv.append(trow);
     

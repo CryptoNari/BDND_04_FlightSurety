@@ -16,6 +16,7 @@ export default class Contract {
         this.passengers = [];
     }
 
+    
     initialize(callback) {
         this.web3.eth.getAccounts((error, accts) => {
            
@@ -32,6 +33,12 @@ export default class Contract {
             }
 
             callback();
+        });
+    }
+
+    getBalance(account, callback) {
+        this.web3.eth.getBalance(account, (err, balance) => {
+            console.log(balance)
         });
     }
 
@@ -63,16 +70,12 @@ export default class Contract {
 
     buyInsurance(payload, callback) {
         let self = this;
-        let value = this.web3.utils.toWei(payload.value.toString(), "ether");
+        let paid = this.web3.utils.toWei(payload.value.toString(), "ether");
+        console.log(`Value: ${paid}`)
         self.flightSuretyData.methods
-            .buyinsurance(
-                payload.airline,
-                payload.flightCode,
-                payload.departure,
-                { from: payload.insuree, value: value }, 
-                (error, result) => {
-                    callback(error, result);
-                });
+            .buyInsurance(payload.airline, payload.flightCode, payload.departure)
+            .send( { from: payload.insuree, value: paid });
+        
     }
 
     fetchFlightStatus(flight, callback) {

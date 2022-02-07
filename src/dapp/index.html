@@ -57,6 +57,7 @@
                     <th scope="col">#</th>
                     <th scope="col">Airline</th>
                     <th scope="col">FlightCode</th>
+                    <th scope="col">Departure</th>
                     <th scope="col">StatusCode</th>
                   </tr>
                 </thead>
@@ -68,6 +69,37 @@
 
         <div class="container" id="insurance-forms" style="display: none">
             <h2>Insurances</h2>
+            <h3>Buy Insurance</h3>
+            <form role = "form">
+   
+                <div class = "form-group">
+                    <label for = "flight">Select Flight</label>
+                    
+                    <select id="flight" class = "form-control">
+                       <option>Flight1</option>
+                       <option>Flight2</option>
+                       <option>Flight3</option>
+                    </select>
+              
+                    <label for = "insuree">Select Insuree Address</label>
+                    
+                    <select id="insuree" class = "form-control">
+                       <option>0x1B0A272Dc71CcD96685ae33266EA0c1264d3B670</option>
+                    </select>
+                    
+                    <label for = "value" class = "col-sm-2 control-label">Value in "ether"</label>
+		 
+                     
+                    <input type = "text" class = "form-control" id = "value" placeholder = "1">
+                    <div class="top-20">
+                        <btn class="btn btn-primary" id="buy-insurance">Buy Insurance</btn>
+                    </div>
+                    
+                    
+                   
+                </div>
+                 
+             </form>
         </div>
         
     </main>

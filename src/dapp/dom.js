@@ -18,6 +18,7 @@ export default class DOM {
     static td = (...args) => DOM.makeElement(`td`, ...args);
     static tr = (...args) => DOM.makeElement(`tr`, ...args);
     static th = (...args) => DOM.makeElement(`th`, ...args);
+    static tbody = (...args) => DOM.makeElement(`tbody`, ...args);
     static attributeExceptions = [
       `role`,
     ];

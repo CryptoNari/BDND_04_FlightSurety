@@ -40,9 +40,6 @@ async function main() {
   flightSuretyApp.events.OracleRequest({
     fromBlock: 0
   }, function (error, event) {
-    
-    
-
     oracleRespond(
       event.returnValues.index,
       event.returnValues.airline,
