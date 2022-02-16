@@ -5,7 +5,7 @@ body {
 }
 
 .container {
-    margin-top: 400px;
+    margin-top: 150px;
     background-color: #000;
     opacity: 0.9;
     color: #fff;
@@ -39,4 +39,8 @@ label.form {
 }
 input {
     margin-right: 30px;
+}
+
+.btn {
+    margin: 10px 10px 0px;
 }

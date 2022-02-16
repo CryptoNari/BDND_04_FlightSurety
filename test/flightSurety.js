@@ -273,27 +273,6 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(eventInsurancePurchased, true, 'Invalid FlightRegistered event emitted')
   
   });
- 
-
-  it(`(insurance) check if flights are registered on deployment`, async function () {
-    
-    let count = await config.flightSuretyData.getRegisteredFlight.call(0);
-    console.log(count)
-    
-    /* // ACT
-    try {
-      await config.flightSuretyData.buyInsurance(config.firstAirline, "ND1309", departure, {from: Account[10], value: web3.utils.toWei('1','ether')});  
-    }
-    catch(e) {
-    
-    }
-        
-    // ASSERT
-    assert.equal(eventInsurancePurchased, true, 'Invalid FlightRegistered event emitted') */
-  
-  });
- 
- 
 
 });
 

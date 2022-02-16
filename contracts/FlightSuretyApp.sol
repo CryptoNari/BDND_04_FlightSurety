@@ -122,14 +122,12 @@ contract FlightSuretyApp {
         external
     {
         // check if Flight is already registered
-        bytes32 flightKey = getFlightKey(msg.sender, _name, _departure);
-        require(!dataContract.flightRegistered(flightKey));
+        require(!dataContract.flightRegistered(_name));
         
         dataContract.registerFlight(
             msg.sender,
             _departure, 
-            _name,
-            flightKey
+            _name
         );
     }
 
@@ -160,16 +158,13 @@ contract FlightSuretyApp {
     *
     */  
     function processFlightStatus(
-        address _airline,
         string _flight,
-        uint256 _timestamp,
         uint8 _statusCode
     )
         requireIsOperational
         internal
     {
-        bytes32 flightKey = getFlightKey(_airline, _flight, _timestamp);
-        dataContract.updateFlightStatus(flightKey, _statusCode);
+        dataContract.updateFlightStatus( _flight, _statusCode);
     }
 
 
@@ -182,6 +177,7 @@ contract FlightSuretyApp {
         requireIsOperational
         public
     {
+        // !!! require status unknown on live. Not implemented for testing
         uint8 index = getRandomIndex(msg.sender);
         // Generate a unique key for storing the request
         bytes32 key = keccak256(abi.encodePacked(
@@ -332,7 +328,7 @@ contract FlightSuretyApp {
             emit FlightStatusInfo(_airline, _flight, _timestamp, _statusCode);
             
             // Handle flight status as appropriate
-            processFlightStatus(_airline, _flight, _timestamp, _statusCode);
+            processFlightStatus(_flight, _statusCode);
         }
     }
 

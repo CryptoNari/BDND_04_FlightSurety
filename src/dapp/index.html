@@ -12,11 +12,13 @@
 <body>
 
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        
         <a class="navbar-brand" href="#">FlightSurety</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault"
             aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+        
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
               <a id="nav-contract" class="nav-item nav-link active" href="#">Contract <span class="sr-only">(current)</span></a>
@@ -25,9 +27,11 @@
               <a id="nav-insurance" class="nav-item nav-link " href="#">Insurances</a>
             </div>
           </div>
+
     </nav>
 
     <main>
+        <!-- Page Container CONTRACTS -->
         <div class="container" id="contract-forms" style="display: block">
             <h2>Contracts</h2>
             <div id="display-wrapper" class="top-20">
@@ -39,19 +43,19 @@
                 <input type="text" id="flight-code">
                 <label class="form">Departure</label>
                 <input type="text" id="flight-departure">  
-                <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+                
             </div>
             
         </div>
-
+        <!-- Page Container AIRLINES -->
         <div class="container" id="airlines-forms" style="display: none">
             <h2>Airlines</h2>
         </div>
-        
+        <!-- Page Container FLIGHTS -->
         <div class="container" id="flights-forms"style="display: none">
             <h2>Flights</h2>
             <btn class="btn btn-primary" id="load-flights">Load/Refresh Flights</btn>
-            <table class="table" id="flights-table">
+            <table class="table top-20" id="flights-table">
                 <thead class="thead-dark">
                   <tr>
                     <th scope="col">#</th>
@@ -66,41 +70,94 @@
                 </tbody>
             </table>   
         </div>
-
+        <!-- Page Container INSURANCES -->
         <div class="container" id="insurance-forms" style="display: none">
             <h2>Insurances</h2>
-            <h3>Buy Insurance</h3>
             <form role = "form">
    
                 <div class = "form-group">
-                    <label for = "flight">Select Flight</label>
-                    
-                    <select id="flight" class = "form-control">
-                       <option>Flight1</option>
-                       <option>Flight2</option>
-                       <option>Flight3</option>
-                    </select>
-              
-                    <label for = "insuree">Select Insuree Address</label>
-                    
-                    <select id="insuree" class = "form-control">
-                       <option>0x1B0A272Dc71CcD96685ae33266EA0c1264d3B670</option>
-                    </select>
-                    
-                    <label for = "value" class = "col-sm-2 control-label">Value in "ether"</label>
-		 
-                     
-                    <input type = "text" class = "form-control" id = "value" placeholder = "1">
-                    <div class="top-20">
-                        <btn class="btn btn-primary" id="buy-insurance">Buy Insurance</btn>
+                    <div class="row">
+                        <div class="col-6">
+                            <label for = "insuree">Select Insuree Address</label>
+                            <select id="insuree" class = "form-control">
+                               <option>0x1B0A272Dc71CcD96685ae33266EA0c1264d3B670</option>
+                            </select>
+                            <div class="row top-20">
+                                <div class="col">
+                                    <label for="acc-balance">Account Balance(in Eth):</label>
+                                    <input type="number" id="acc-balance" class = "form-control" readonly>
+                                </div>
+                                <div class="col align-self-end">
+                                    <btn class="btn btn-primary" id="get-acc-balance">Get Balance</btn>
+                                </div>
+                            </div> 
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="ins-balance">Withdraw Balance(in ETH):</label>
+                                    <input type="number" id="ins-balance" class = "form-control" readonly>
+                                </div>
+                                <div class="col align-self-end">
+                                    <btn class="btn btn-primary" id="get-ins-balance">Get Balance</btn>
+                                </div>
+
+                            </div>
+                            <btn class="btn btn-primary top-20" id="payout-balance">Payout Insurance</btn>    
+                        </div>
+                      
                     </div>
+                    
+
+                    <div class="row top-20">
+                        <div class="col-sm">
+                            <label for = "flight">Select Flight</label>
+                            <select id="flight" class = "form-control">
+                               <option>Flight1</option>
+                               <option>Flight2</option>
+                               <option>Flight3</option>
+                            </select>
+                            <div class="row">
+                                <div class="col top-20">
+                                    <label class="" for = "value" class = "col-sm-2 control-label">Value in "ether"</label>
+                                    <input type = "text" class = "form-control" id = "value" value="1">
+                                </div>
+                                <div class="col align-self-end">
+                                    <btn class="btn btn-primary" id="buy-insurance">Buy Insurance</btn>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="col-sm align-self-end">
+                            <btn class="btn btn-primary" id="show-insurances">Show/Update Insurances</btn>
+                        </div>
+                    </div>              
+                    <div class="top-20 btn-group d-flex justify-content-center">
+                        
+                        
+                    </div>
+                    
                     
                     
                    
                 </div>
                  
              </form>
+             <table class="table top-20" id="insurance-table">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col">Insurance State</th>
+                    <th scope="col">Flight Code</th>
+                    <th scope="col">Status Code</th>
+                    <th scope="col">Options</th>
+                  </tr>
+                </thead>
+                <tbody id="insurance-table-body">
+
+                </tbody>
+            </table>
         </div>
+
         
     </main>
 

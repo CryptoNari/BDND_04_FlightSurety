@@ -5,7 +5,7 @@ import Web3 from 'web3';
 
 export default class Contract {
     constructor(network, callback) {
-
+        // let dataAddress = config.dataAddress;
         let config = Config[network];
         this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
@@ -15,7 +15,7 @@ export default class Contract {
         this.airlines = [];
         this.passengers = [];
     }
-
+    
     
     initialize(callback) {
         this.web3.eth.getAccounts((error, accts) => {
@@ -35,12 +35,7 @@ export default class Contract {
             callback();
         });
     }
-
-    getBalance(account, callback) {
-        this.web3.eth.getBalance(account, (err, balance) => {
-            console.log(balance)
-        });
-    }
+    
 
     isOperational(callback) {
        let self = this;
@@ -49,12 +44,37 @@ export default class Contract {
             .call({ from: self.owner}, callback);
     }
 
+
+    fundAirline (airline, callback) {
+        let self = this;
+        self.flightSuretyData.methods
+            .fund(airline)
+            .send({from: airline, value: this.web3.utils.toWei('10','ether')}, callback);
+    }
+
+
+    getAccBalance(address,callback) {
+        let self = this;
+        self.web3.eth.getBalance(address)
+        .then(callback) 
+    }
+
+    // Insuree Contract Balance
+    getBalance(caller, callback) {
+        let self = this;
+        self.flightSuretyData.methods
+            .getBalance(caller)
+            .call( {from: caller}, callback );
+    }
+
+
     getRegisteredFlightsCount(callback) {
         let self = this;
         self.flightSuretyData.methods
             .getRegisteredFlightsCount()
             .call({ from: self.owner}, callback);
     }
+
 
     getRegisteredFlight(index, callback) {
         let self = this;
@@ -68,15 +88,43 @@ export default class Contract {
             });
     }
 
+
     buyInsurance(payload, callback) {
         let self = this;
         let paid = this.web3.utils.toWei(payload.value.toString(), "ether");
-        console.log(`Value: ${paid}`)
         self.flightSuretyData.methods
-            .buyInsurance(payload.airline, payload.flightCode, payload.departure)
-            .send( { from: payload.insuree, value: paid });
-        
+            .buyInsurance(payload.flightCode)
+            .send({ from: payload.insuree, value: paid });
     }
+    
+
+    creditInsurees(flightCode, caller, callback) {
+        let self = this;
+        self.flightSuretyData.methods
+            .creditInsurees(flightCode)
+            .send( { from: caller }, (error, result) => {
+                // console.log(error , result);
+                callback(error, result); 
+            });  
+    }
+
+
+    getInsurance(flightCode, caller, callback) {
+        let self = this;
+        self.flightSuretyData.methods
+            .getInsurance(flightCode)
+            .call( {from: caller}, callback );
+    }
+
+
+    payoutInsurance(caller, callback) {
+        let self = this
+        self.flightSuretyData.methods
+            .pay()
+            .send({from: caller})
+            .then(console.log);
+    }
+
 
     fetchFlightStatus(flight, callback) {
         let self = this;

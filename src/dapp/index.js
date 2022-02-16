@@ -3,6 +3,9 @@ import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
 
+let insuranceStates = ["Init","Active","Payable","Closed","Received"];
+let flightStates = [ "UNKNOWN", "ON_TIME", "LATE_AIRLINE", "LATE_WEATHER","LATE_TECHNICAL","LATE_OTHER"];
+
 
 (async() => {
 
@@ -30,46 +33,51 @@ import './flightsurety.css';
                 containers[index].style.display = "block";
             })
         })
-        
-        // get Registered Flights
-        /* let flightCount = contract.getRegisteredFlightsCount();
-        console.log(`ID:${flightCount}`);
-        for(let i = 0 ; i < 3 ; i ++ ) {
-            contract.getRegisteredFlight(i, (error, result) => {
-                showFlights([ { flightCode: result.flightCode, error: error} ]);
-            })
-        }; */
-        
 
-        // User-submitted transaction
+
         DOM.elid('load-flights').addEventListener('click', () => {
             getFlights();
+        })
+
+        DOM.elid('payout-balance').addEventListener('click', () => {
+            let caller = DOM.elid("insuree").value;
+            contract.payoutInsurance(caller);
+        })
+
+
+        DOM.elid('get-acc-balance').addEventListener('click', () => {
+            let caller = DOM.elid("insuree").value;
+            contract.getAccBalance(caller, result => {
+                console.log(result);
+                let balance = DOM.elid("acc-balance");
+                balance.readOnly = false;
+                balance.value = contract.web3.utils.fromWei(result);
+                balance.readOnly = true;
+            })
+        })
+
+        DOM.elid('get-ins-balance').addEventListener('click', () => {
+            let caller = DOM.elid("insuree").value;
+            contract.getBalance(caller, (error, result) => {
+                console.log(error,result);
+                let balance = DOM.elid("ins-balance");
+                balance.readOnly = false;
+                balance.value = contract.web3.utils.fromWei(result);
+                balance.readOnly = true;
+            })
+        })
+
+        DOM.elid('show-insurances').addEventListener('click', () => {
+            getInsurances();
         })
 
         DOM.elid("buy-insurance").addEventListener("click", async () => {
             let flight = DOM.elid("flight").value;
             let account = DOM.elid("insuree").value;
             let i;
-            let balance = contract.getBalance(account);
-            
-
-            switch(flight) {
-                case "Flight1": i = 0
-                break;
-                case "Flight2": i = 1
-                break;
-                case "Flight3": i = 2
-                break;            
-            };
-
-            let airline = DOM.elid("table-body").rows[i].cells.item(2).innerHTML;
-            let departure = DOM.elid("table-body").rows[i].cells.item(3).innerHTML;
-
             
             let payload = {
-                airline: airline,
                 flightCode: flight,
-                departure: departure,
                 insuree: account,
                 value: DOM.elid("value").value
             };
@@ -81,8 +89,9 @@ import './flightsurety.css';
                 let err = e;
                 console.log(e);
             } finally {
-                balance = contract.getBalance(account);
+                // getInsurances();
             }
+            
         });
 
         
@@ -92,16 +101,12 @@ import './flightsurety.css';
             // console.log(error,result);
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
-    
 
-        // User-submitted transaction
-        DOM.elid('submit-oracle').addEventListener('click', () => {
-            let flight = DOM.elid('flight-number').value;
-            // Write transaction
-            contract.fetchFlightStatus(flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
-            });
-        })
+        contract.fundAirline(contract.airlines[0], (error, result) => {
+            console.log(error,result);
+           
+        });
+
 
         function getFlights() {
             removeFlights();
@@ -114,13 +119,66 @@ import './flightsurety.css';
                 };
             });
         }
+
+        function getInsurances() {
+            removeInsurances();
+            let flight = DOM.elid("flight").value;
+            let caller = DOM.elid("insuree").value;
+            // console.log(`INDEX:inputs flight:${flight}, caller: ${caller}`)
+                // GET FLIGHT CODE
+            contract.getInsurance(flight, caller, (error, result) => {
+                //console.log(`INDEX:result: ${result.status}`)
+                showInsurances(result);
+            });
+                
+            
+        }
+
+        function showInsurances(results) {
+            let displayDiv = DOM.elid("insurance-table-body");
+            let trow = DOM.tr();
+            
+            trow.appendChild(DOM.td(insuranceStates[results.status]));
+            trow.appendChild(DOM.td(results.flightCode));
+            trow.appendChild(DOM.td(flightStates[results.flightStatus/10]));
+            if (results.status !== '2'){
+
+                let button = DOM.button({id:"submit-oracle", className:"btn btn-primary"}, "Get Flight Status");
+                button.addEventListener('click', () => {
+                    let flight = DOM.elid("flight").value;
+                    // Write transaction
+                    contract.fetchFlightStatus(flight, (error, result) => {
+                        display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+                        
+                        // getInsurances();
+                    });
+                });
+                trow.appendChild(DOM.td().appendChild(button))
+
+            } else if (results.status === '2') { //payable
+
+                let button = DOM.button({id:"submit-oracle", className:"btn btn-primary"}, "Claim Insurance");
+                button.addEventListener('click', () => {
+                    let flight = DOM.elid("flight").value;
+                    let caller = DOM.elid("insuree").value;
+                    // Write transaction
+                    //console.log(`INDEX:credit flight:${flight}, caller: ${caller}`)
+                    contract.creditInsurees(flight, caller, (error, result) => {
+                        //console.log(`INDEX:credit flight:${flight}, caller: ${caller}, result: ${result}`);
+                    });
+                });
+                trow.appendChild(DOM.td().appendChild(button))
+            } 
+            
+            
+            
+            displayDiv.append(trow);    
+        } 
     
     });
     
 
 })();
-
-
 
 
 function display(title, description, results) {
@@ -135,13 +193,19 @@ function display(title, description, results) {
         section.appendChild(row);
     })
     displayDiv.append(section);
-
 }
 
 function removeFlights() {
     let table = DOM.elid("flights-table");
     let tableBody = DOM.tbody({id: 'table-body'});
     DOM.elid("table-body").remove();
+    table.append(tableBody);
+}
+
+function removeInsurances() {
+    let table = DOM.elid("insurance-table");
+    let tableBody = DOM.tbody({id: 'insurance-table-body'});
+    DOM.elid("insurance-table-body").remove();
     table.append(tableBody);
 }
 
@@ -153,20 +217,5 @@ function showFlights(results) {
     trow.appendChild(DOM.td(results.airline));
     trow.appendChild(DOM.td(results.departure));
     trow.appendChild(DOM.td(results.statusCode));
-    displayDiv.append(trow);
-    
-    /* section.appendChild(DOM.th({scope: 'row'}, results.index));
-    section.appendChild(DOM.td(results.airline));
-    section.appendChild(DOM.td(results.flightCode));
-    section.appendChild(DOM.td(results.statusCode));
-    displayDiv.append(section) */;
-    
+    displayDiv.append(trow);    
 }
-
-
-
-
-
-
-
-
