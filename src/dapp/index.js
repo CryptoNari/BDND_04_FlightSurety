@@ -48,7 +48,6 @@ let flightStates = [ "UNKNOWN", "ON_TIME", "LATE_AIRLINE", "LATE_WEATHER","LATE_
         DOM.elid('get-acc-balance').addEventListener('click', () => {
             let caller = DOM.elid("insuree").value;
             contract.getAccBalance(caller, result => {
-                console.log(result);
                 let balance = DOM.elid("acc-balance");
                 balance.readOnly = false;
                 balance.value = contract.web3.utils.fromWei(result);
@@ -59,7 +58,6 @@ let flightStates = [ "UNKNOWN", "ON_TIME", "LATE_AIRLINE", "LATE_WEATHER","LATE_
         DOM.elid('get-ins-balance').addEventListener('click', () => {
             let caller = DOM.elid("insuree").value;
             contract.getBalance(caller, (error, result) => {
-                console.log(error,result);
                 let balance = DOM.elid("ins-balance");
                 balance.readOnly = false;
                 balance.value = contract.web3.utils.fromWei(result);
@@ -81,7 +79,6 @@ let flightStates = [ "UNKNOWN", "ON_TIME", "LATE_AIRLINE", "LATE_WEATHER","LATE_
                 insuree: account,
                 value: DOM.elid("value").value
             };
-            console.log(payload);
 
             try {
                 contract.buyInsurance(payload);
@@ -98,12 +95,12 @@ let flightStates = [ "UNKNOWN", "ON_TIME", "LATE_AIRLINE", "LATE_WEATHER","LATE_
 
         // Read transaction
         contract.isOperational((error, result) => {
-            // console.log(error,result);
+            if (error) console.log(error);
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
 
         contract.fundAirline(contract.airlines[0], (error, result) => {
-            console.log(error,result);
+            if (error) console.log(error);
            
         });
 
@@ -111,7 +108,7 @@ let flightStates = [ "UNKNOWN", "ON_TIME", "LATE_AIRLINE", "LATE_WEATHER","LATE_
         function getFlights() {
             removeFlights();
             contract.getRegisteredFlightsCount((error, result) => {
-                // console.log(error,result);
+                if (error) console.log(error);
                 for(let i = 0 ; i < result ; i ++ ) {
                     contract.getRegisteredFlight(i, (error, result) => {
                         showFlights(result);

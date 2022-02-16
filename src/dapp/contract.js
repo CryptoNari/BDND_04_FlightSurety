@@ -122,7 +122,7 @@ export default class Contract {
         self.flightSuretyData.methods
             .pay()
             .send({from: caller})
-            .then(console.log);
+            // .then(console.log);
     }
 
 
