@@ -21,6 +21,8 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
+    uint private constant MAX_INSURANCE_AMOUNT = 1 ether;
+
     address private contractOwner;          // Account used to deploy contract
     
     FlightSuretyData dataContract;
@@ -40,10 +42,26 @@ contract FlightSuretyApp {
         _;
     }
 
-     modifier onlyFundedAirline(address _airline) {
+    modifier onlyFundedAirline(address _airline) {
         require(
             dataContract.isFundedAirline(_airline),
             "Airline is not funded"
+        );
+        _;
+    }
+
+    modifier isRegisteredFlight(string _flightCode) {
+        require (
+            dataContract.flightRegistered(_flightCode),
+            "Flight is not registered"
+        );
+        _;
+    }
+
+    modifier maxInsuranceAmount() {
+        require (
+            msg.value <= MAX_INSURANCE_AMOUNT,
+            "Maximum allowed insurance is 1 ether"
         );
         _;
     }
@@ -129,6 +147,20 @@ contract FlightSuretyApp {
             _departure, 
             _name
         );
+    }
+
+    /**
+    * @dev Purchase a flight Insurance.
+    *
+    */
+    function purchaseInsurance (string _flightCode)
+        requireIsOperational
+        isRegisteredFlight(_flightCode)
+        maxInsuranceAmount
+        external
+        payable
+    {
+        dataContract.buyInsurance.value(msg.value)(_flightCode, msg.sender);
     }
 
     // ****

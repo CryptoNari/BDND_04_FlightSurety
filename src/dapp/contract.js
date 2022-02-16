@@ -92,8 +92,8 @@ export default class Contract {
     buyInsurance(payload, callback) {
         let self = this;
         let paid = this.web3.utils.toWei(payload.value.toString(), "ether");
-        self.flightSuretyData.methods
-            .buyInsurance(payload.flightCode)
+        self.flightSuretyApp.methods
+            .purchaseInsurance(payload.flightCode)
             .send({ from: payload.insuree, value: paid });
     }
     

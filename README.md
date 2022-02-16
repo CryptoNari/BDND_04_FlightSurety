@@ -1,7 +1,9 @@
 # FlightSurety
 
 FlightSurety is a sample application project for Udacity's Blockchain course.
+
 The Current State of the DApp includes just a testing purpose of buying an insurance and getting the payout after LATE_AIRLINE State.
+
 Feedbacks regarding UI/UX are not implemented yet.
 
 ## Install
@@ -9,7 +11,9 @@ Feedbacks regarding UI/UX are not implemented yet.
 ### Requirements
 
 Truffle v5.0.2 (core: 5.0.2)
+
 Solidity - ^0.4.24 (solc-js)
+
 Node v10.7.0
 
 
@@ -23,9 +27,11 @@ To install, download or clone the repo, then:
 ## Develop Client  (truffle tests)
 
 In the first terminal start ganache:
+
 `ganache-cli -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -a 100 -e 1000`
 
 In a second terminal run:
+
 `truffle compile`
 
 To run truffle tests:
@@ -36,6 +42,7 @@ To run truffle tests:
 ## DApp Client 
 
 In the first terminal start/restart ganache:
+
 `ganache-cli -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -a 100 -e 1000`
 
 In a second terminal run to start the Dapp:

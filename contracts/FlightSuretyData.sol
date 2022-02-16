@@ -420,26 +420,22 @@ contract FlightSuretyData {
     * @dev Buy insurance for a flight
     *
     */   
-    function buyInsurance (string _flightCode)
+    function buyInsurance (string _flightCode, address _caller)
         requireIsOperational
+        requireAuthorizedCaller
         external
         payable
     {
-        Insurance storage insurance = insurances[msg.sender][_flightCode];
-        require(
-            msg.value <= MAX_INSURANCE_AMOUNT,
-            "Maximum allowed insurance is 1 ether"
-        );
+        Insurance storage insurance = insurances[_caller][_flightCode];
         require(
             insurance.status == InsuranceState.Init,
             "Insurance Policy already exists"
-        );
-        require(flights[_flightCode].isRegistered, "Flight is not registered");
+        ); 
 
         insurance.status = InsuranceState.Active;
         insurance.insuranceAmount = msg.value;        
        
-        emit InsurancePurchased(msg.sender, _flightCode);
+        emit InsurancePurchased(_caller, _flightCode);
     }
 
     /**
